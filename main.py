@@ -2,41 +2,38 @@ import argparse
 import torch
 from utils.config import Config
 from env.make_env import make_env
-from agents.qac_agent import QACAgent
+from agents.a2c_agent import A2CAgent
 from trainer import Trainer
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='CartPole-v1')
-    parser.add_argument('--num_episodes', type=int, default=1000)
-    parser.add_argument('--gamma', type=float, default=0.99)
-    parser.add_argument('--actor_lr', type=float, default=1e-3)
-    parser.add_argument('--critic_lr', type=float, default=1e-2)
-    parser.add_argument('--hidden_dim', type=int, default=128)
-    parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--config', type=str, default='config/default.yaml',
+                        help='Path to YAML config file')
+    # 命令行参数（用于覆盖 YAML 中的值）
+    parser.add_argument('--env', type=str, help='Override env_name')
+    parser.add_argument('--num_episodes', type=int, help='Override num_episodes')
+    parser.add_argument('--gamma', type=float, help='Override gamma')
+    parser.add_argument('--actor_lr', type=float, help='Override actor_lr')
+    parser.add_argument('--critic_lr', type=float, help='Override critic_lr')
+    parser.add_argument('--hidden_dim', type=int, help='Override hidden_dim')
+    parser.add_argument('--seed', type=int, help='Override seed')
+    parser.add_argument('--device', type=str, help='Override device')
     args = parser.parse_args()
 
-    config = Config()
-    config.env_name = args.env
-    config.num_episodes = args.num_episodes
-    config.gamma = args.gamma
-    config.actor_lr = args.actor_lr
-    config.critic_lr = args.critic_lr
-    config.hidden_dim = args.hidden_dim
-    config.seed = args.seed
-    config.device = args.device
-    config.max_steps_per_episode = 500  # 可配置
+    # 收集要覆盖的参数（仅保留非 None 的值）
+    overrides = {k: v for k, v in vars(args).items() 
+                 if v is not None and k != 'config'}
+
+    # 从 YAML 加载配置，并应用覆盖
+    config = Config.from_yaml(args.config, overrides)
 
     env = make_env(config.env_name, seed=config.seed)
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.n
 
-    agent = QACAgent(state_dim, action_dim, config)
+    agent = A2CAgent(state_dim, action_dim, config)
     trainer = Trainer(env, agent, config)
     rewards = trainer.train()
-
-    # 可以保存模型等
 
 if __name__ == '__main__':
     main()

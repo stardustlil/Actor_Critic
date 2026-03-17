@@ -19,3 +19,18 @@ class QCritic(nn.Module):
             # action shape: (batch,) 或 scalar
             q = q.gather(1, action.long().unsqueeze(1)).squeeze(1)
         return q
+    
+class VCritic(nn.Module):
+    def __init__(self , state_dim , hidden_dim = 128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim , hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim , hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim , 1)
+        )
+    
+    def forward(self , state):
+        return self.net(state).squeeze(-1)
+    
