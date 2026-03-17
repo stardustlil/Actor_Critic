@@ -1,8 +1,6 @@
 # utils/config.py
 import yaml
-import os
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, fields
 
 @dataclass
 class Config:
@@ -22,6 +20,19 @@ class Config:
     device: str = 'cpu'
 
     @classmethod
+    def _coerce_value(cls, field_name, value):
+        """按 Config 的字段类型对覆盖值进行转换。"""
+        expected_type = cls.__dataclass_fields__[field_name].type
+
+        if expected_type is int and isinstance(value, str):
+            return int(value)
+        if expected_type is float and isinstance(value, str):
+            return float(value)
+        if expected_type is str:
+            return str(value)
+        return value
+
+    @classmethod
     def from_yaml(cls, path: str, overrides=None):
         with open(path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
@@ -29,15 +40,11 @@ class Config:
         if overrides:
             data.update(overrides)
 
-        # 自动类型修复
-        for k, v in data.items():
-            if isinstance(v, str):
-                try:
-                    data[k] = float(v)
-                except:
-                    try:
-                        data[k] = int(v)
-                    except:
-                        pass
+        # 自动类型修复（仅处理 Config 中已声明字段）
+        valid_keys = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in valid_keys}
 
-        return cls(**data)
+        for key, value in filtered.items():
+            filtered[key] = cls._coerce_value(key, value)
+
+        return cls(**filtered)

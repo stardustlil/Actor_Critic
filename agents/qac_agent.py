@@ -34,14 +34,12 @@ class QACAgent:
         action = torch.LongTensor([action]).to(self.device)
         reward = torch.FloatTensor([reward]).to(self.device)
         next_state = torch.FloatTensor(next_state).unsqueeze(0).to(self.device)
-        done = torch.FloatTensor([done]).to(self.device)
-
         # ---------- Critic 更新 ----------
         with torch.no_grad():
             if done:
                 target = reward
             else:
-                # 修复点：将 next_action 转换为张量
+                # 使用 next_action 评估下一状态的 Q 值
                 next_action_tensor = torch.LongTensor([next_action]).to(self.device)
                 next_q = self.critic(next_state, next_action_tensor)
                 target = reward + self.gamma * next_q

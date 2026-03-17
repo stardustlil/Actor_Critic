@@ -26,7 +26,7 @@ $$
 
 $$
 \begin{align*}
-    \theta_{t+1} &= \theta_t\,+\,\alpha\nabla_\theta\ln{\pi(a_t|,s_t,\theta_t)}q(s_t,a_t)
+    \theta_{t+1} &= \theta_t\,+\,\alpha\nabla_\theta\ln{\pi(a_t|s_t,\theta_t)}q(s_t,a_t)
 \end{align*}
 $$
 
@@ -70,6 +70,7 @@ actor_critic/
 │   └── critic.py
 │
 ├── agents/
+│   ├── a2c_agent.py
 │   └── qac_agent.py
 │
 ├── utils/
