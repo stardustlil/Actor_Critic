@@ -22,12 +22,14 @@ $$
 \end{align*}
 $$
 
-   由于该式中含有期望表达式，考虑 stochastic gradient-ascent 方法近似
+由于该式中含有期望表达式，考虑 stochastic gradient-ascent 方法近似
+
 $$
 \begin{align*}
     \theta_{t+1} &= \theta_t\,+\,\alpha\nabla_\theta\ln{\pi(a_t|,s_t,\theta_t)}q(s_t,a_t)
 \end{align*}
 $$
+
 **怎么计算 $q_t$ ?**
 
 1. Monte Carlo learning
@@ -76,3 +78,6 @@ actor_critic/
 └── env/
     └── make_env.py
 ```
+
+
+
