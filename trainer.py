@@ -1,5 +1,6 @@
 import numpy as np
-from env.make_env import make_env
+from utils.visualization import plot_training_curves
+
 
 class Trainer:
     def __init__(self, env, agent, config):
@@ -7,39 +8,55 @@ class Trainer:
         self.agent = agent
         self.config = config
         self.episode_rewards = []
+        self.actor_losses = []
+        self.critic_losses = []
         self._seed_set = False
 
     def train(self):
         for episode in range(self.config.num_episodes):
             if not self._seed_set:
-                state, info = self.env.reset(seed=self.config.seed)
+                state, _ = self.env.reset(seed=self.config.seed)
                 self._seed_set = True
             else:
-                state, info = self.env.reset()
+                state, _ = self.env.reset()
 
             done = False
             episode_reward = 0
             step = 0
 
             while not done and step < self.config.max_steps_per_episode:
-                # 选择动作
-                action, _ = self.agent.select_action(state)   # 忽略 log_prob
-                next_state, reward, terminated, truncated, info = self.env.step(action)
+                action = self.agent.select_action(state)
+                next_state, reward, terminated, truncated, _ = self.env.step(action)
                 done = terminated or truncated
                 episode_reward += reward
 
-                # 更新智能体
                 transition = (state, action, reward, next_state, done)
                 critic_loss, actor_loss = self.agent.update(transition)
+                self.critic_losses.append(critic_loss)
+                self.actor_losses.append(actor_loss)
 
-                # 移动到下一状态
                 state = next_state
                 step += 1
 
             self.episode_rewards.append(episode_reward)
 
-            if (episode + 1) % 100 == 0:
-                avg_reward = np.mean(self.episode_rewards[-100:])
-                print(f"Episode {episode+1}, Avg Reward (last 100): {avg_reward:.2f}")
+            if (episode + 1) % self.config.log_interval == 0:
+                avg_reward = np.mean(self.episode_rewards[-self.config.log_interval:])
+                print(f"Episode {episode+1}, Avg Reward (last {self.config.log_interval}): {avg_reward:.2f}")
 
-        return self.episode_rewards
+        plot_path = None
+        if self.config.enable_visualization:
+            plot_path = plot_training_curves(
+                rewards=self.episode_rewards,
+                actor_losses=self.actor_losses,
+                critic_losses=self.critic_losses,
+                output_path=self.config.plot_path,
+            )
+            print(f"Training curves saved to: {plot_path}")
+
+        return {
+            "episode_rewards": self.episode_rewards,
+            "actor_losses": self.actor_losses,
+            "critic_losses": self.critic_losses,
+            "plot_path": plot_path,
+        }
