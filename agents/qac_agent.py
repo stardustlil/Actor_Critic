@@ -1,10 +1,12 @@
 import torch
 import torch.nn.functional as F
 from agents.base_agent import BaseAgent
+from agents import register_agent
 from models.actor import DiscreteActor
 from models.critic import QCritic
 
 
+@register_agent("qac")
 class QACAgent(BaseAgent):
     def __init__(self, state_dim, action_dim, config):
         self.gamma = config.gamma
