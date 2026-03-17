@@ -1,12 +1,20 @@
-# 默认配置
+# 环境参数
 env_name: CartPole-v1
 max_steps_per_episode: 500
 seed: 42
 
+# 算法参数
+algorithm: a2c # 可选: a2c, qac
 num_episodes: 1000
 gamma: 0.99
 actor_lr: 1e-4
 critic_lr: 1e-4
 hidden_dim: 128
+log_interval: 100
 
+# 可视化
+enable_visualization: true
+plot_path: outputs/training_curves.png
+
+# 设备
 device: cpu
